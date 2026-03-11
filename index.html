@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Luketa DJ Run</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#0b0b0b;
+    font-family:Arial;
+}
+
+canvas{
+    display:block;
+    margin:auto;
+    background:linear-gradient(#0b0b0b,#1a1a1a);
+}
+
+#score{
+    position:absolute;
+    top:20px;
+    left:20px;
+    color:white;
+    font-size:22px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="score">Score: 0</div>
+<canvas id="game" width="900" height="400"></canvas>
+
+<script>
+
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
+
+let player = {
+    x:120,
+    y:280,
+    width:50,
+    height:60,
+    velocityY:0,
+    jumping:false
+}
+
+let gravity = 0.6
+let obstacles = []
+let score = 0
+let speed = 6
+
+function drawPlayer(){
+
+    // corpo
+    ctx.fillStyle="white"
+    ctx.beginPath()
+    ctx.arc(player.x, player.y, 25, 0, Math.PI*2)
+    ctx.fill()
+
+    // cabelo loiro
+    ctx.fillStyle="gold"
+    ctx.beginPath()
+    ctx.arc(player.x, player.y-20, 20, Math.PI, Math.PI*2)
+    ctx.fill()
+
+    // olho
+    ctx.fillStyle="black"
+    ctx.beginPath()
+    ctx.arc(player.x+8, player.y-5, 3, 0, Math.PI*2)
+    ctx.fill()
+
+}
+
+function drawGround(){
+    ctx.fillStyle="#222"
+    ctx.fillRect(0,310,canvas.width,5)
+}
+
+function createObstacle(){
+    obstacles.push({
+        x:canvas.width,
+        y:290,
+        width:20,
+        height:20
+    })
+}
+
+function drawObstacles(){
+
+    ctx.fillStyle="#ff2a6d"
+
+    obstacles.forEach(o=>{
+        ctx.fillRect(o.x,o.y,o.width,o.height)
+        o.x -= speed
+
+        if(o.x < -50){
+            obstacles.shift()
+        }
+
+        if(
+            player.x+25 > o.x &&
+            player.x-25 < o.x+o.width &&
+            player.y+25 > o.y
+        ){
+            resetGame()
+        }
+
+    })
+}
+
+function jump(){
+    if(!player.jumping){
+        player.velocityY = -12
+        player.jumping = true
+    }
+}
+
+function updatePlayer(){
+
+    player.y += player.velocityY
+    player.velocityY += gravity
+
+    if(player.y >= 280){
+        player.y = 280
+        player.jumping = false
+    }
+}
+
+function resetGame(){
+
+    score = 0
+    obstacles = []
+    speed = 6
+}
+
+function gameLoop(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+
+    drawGround()
+
+    updatePlayer()
+    drawPlayer()
+
+    drawObstacles()
+
+    score += 1
+    speed += 0.0005
+
+    document.getElementById("score").innerText = "Score: " + score
+
+    requestAnimationFrame(gameLoop)
+}
+
+setInterval(createObstacle,1800)
+
+document.addEventListener("keydown", e=>{
+    if(e.code === "Space"){
+        jump()
+    }
+})
+
+document.addEventListener("click", jump)
+
+gameLoop()
+
+</script>
+
+</body>
+</html>
